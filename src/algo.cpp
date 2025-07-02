@@ -7,7 +7,7 @@
 #include <string>
 
 
-[[nodiscard]] unsigned int heuristic(glm::ivec2 current_position, glm::ivec2 goal_position)
+[[nodiscard]] unsigned int heuristic(const glm::ivec2 &current_position, const glm::ivec2 &goal_position)
 {
     return std::abs(current_position.x - goal_position.x) + std::abs(current_position.y - goal_position.y);
 }
@@ -44,14 +44,12 @@ Algo::Algo(Window &window, Buffer *buffer, const glm::ivec2 &start, const glm::i
 {
     m_buffer->updateTile(start, TileType::START);
     m_buffer->updateTile(goal, TileType::GOAL);
-
-    noise(45);
 }
 
 
 void Algo::addBlocked(const glm::ivec2 &position)
 {
-    if (m_start_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE || position.x < 0 || position.y < 0)
+    if (m_run_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE || position.x < 0 || position.y < 0)
     {
         return;
     }
@@ -66,7 +64,7 @@ void Algo::addBlocked(const glm::ivec2 &position)
 
 void Algo::removeBlocked(const glm::ivec2 &position)
 {
-    if (m_start_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE || position.x < 0 || position.y < 0)
+    if (m_run_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE || position.x < 0 || position.y < 0)
     {
         return;
     }
@@ -81,6 +79,8 @@ void Algo::removeBlocked(const glm::ivec2 &position)
 
 void Algo::noise(int percentage)
 {
+    reset();
+
     if (percentage > 100)
     {
         percentage = 100;
@@ -113,9 +113,16 @@ void Algo::noise(int percentage)
 }
 
 
+void Algo::pause()
+{
+    m_run_algo = false;
+}
+
+
 void Algo::reset()
 {
     m_start_algo = false;
+    m_run_algo = false;
 
     m_buffer->clear();
     m_buffer->updateTile(m_start, TileType::START);
@@ -127,16 +134,29 @@ void Algo::reset()
     m_cost_g_map.clear();
     m_priority_queue = std::priority_queue<Tile, std::vector<Tile>, std::greater<>>();
 
-    std::string title = "AStar";
+    const std::string title = "AStar";
     m_window.title(title);
+}
+
+
+void Algo::resume()
+{
+    m_run_algo = true;
+}
+
+
+bool Algo::running() const
+{
+    return m_run_algo;
 }
 
 
 void Algo::start()
 {
     m_start_algo = true;
+    m_run_algo = true;
 
-    Tile start_tile = {
+    const Tile start_tile = {
             m_start,
             0,
             heuristic(m_start, m_goal)
@@ -148,14 +168,20 @@ void Algo::start()
 }
 
 
+bool Algo::started() const
+{
+    return m_start_algo;
+}
+
+
 void Algo::step()
 {
-    if (!m_start_algo || m_visited_tiles[index(m_goal)] || m_priority_queue.empty())
+    if (!m_run_algo || m_visited_tiles[index(m_goal)] || m_priority_queue.empty())
     {
         return;
     }
 
-    Tile current = m_priority_queue.top();
+    const Tile current = m_priority_queue.top();
     m_priority_queue.pop();
 
     if (current.m_cost_g > m_cost_g_map[index(current.m_position)])
@@ -194,7 +220,7 @@ void Algo::step()
             continue;
         }
 
-        unsigned int new_g = current.m_cost_g + 1;
+        const unsigned int new_g = current.m_cost_g + 1;
         if (!m_cost_g_map.contains(neighbour_index) || new_g < m_cost_g_map[neighbour_index])
         {
             m_cost_g_map[neighbour_index] = new_g;
@@ -216,7 +242,7 @@ void Algo::step()
 }
 
 
-void Algo::createPath()
+void Algo::createPath() const
 {
     int came_from_index = index(m_goal);
     int count = 1;
@@ -232,6 +258,6 @@ void Algo::createPath()
         count++;
     }
 
-    std::string title = "AStar - Path length " + std::to_string(count);
+    const std::string title = "AStar - Path length " + std::to_string(count);
     m_window.title(title);
 }

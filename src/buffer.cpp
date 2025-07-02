@@ -102,7 +102,7 @@ std::uint32_t packPosition(const glm::ivec2 &position)
 }
 
 
-std::uint32_t colorFromType(TileType type)
+std::uint32_t colorFromType(const TileType type)
 {
     std::uint32_t color = 0xffffffff;
 

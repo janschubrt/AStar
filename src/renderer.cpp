@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+#include "algo.hpp"
+
 
 constexpr unsigned int GL_SHADER_RECOMPILE_MSG   = 131218;
 
@@ -211,6 +213,18 @@ Renderer::~Renderer()
 }
 
 
+void Renderer::algo(Algo &algo)
+{
+    m_algo = &algo;
+}
+
+
+bool Renderer::automatic() const
+{
+    return m_automatic;
+}
+
+
 Buffer *Renderer::buffer() const
 {
     return m_buffer.get();
@@ -238,39 +252,67 @@ void Renderer::render()
 
 void Renderer::renderUI()
 {
-    ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
-
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     ImGui::Begin("A-Star");
 
+    ImGui::Text("Mode:");
     if (ImGui::Button(m_automatic ? "Switch to: Manual Mode" : "Switch to: Automatic Mode"))
     {
         m_automatic = !m_automatic;
     }
 
-    if (ImGui::Button("<"))
+    if (!m_automatic && m_algo != nullptr)
     {
+        if (ImGui::Button("Step"))
+        {
+            m_algo->step();
+        }
 
+        ImGui::SameLine();
     }
 
-    ImGui::SameLine();
-
-    if (ImGui::Button(">"))
+    if (m_algo != nullptr)
     {
+        if (!m_algo->started() && ImGui::Button("Start"))
+        {
+            m_algo->start();
+        }
+        else if (m_algo->started() && ImGui::Button("Reset"))
+        {
+            m_algo->reset();
+        }
 
+        if (m_algo->started())
+        {
+            ImGui::SameLine();
+        }
+
+        if (!m_automatic)
+        {
+            if (m_algo->running() && ImGui::Button("Pause"))
+            {
+                m_algo->pause();
+            }
+            else if (!m_algo->running() && m_algo->started() && ImGui::Button("Resume"))
+            {
+                m_algo->resume();
+            }
+        }
     }
 
-    ImGui::Text("Fill Plane with noise");
+
+    ImGui::NewLine();
+    ImGui::Text("Fill Plane with Noise");
     ImGui::InputInt("## Input", &m_noise_percent);
 
     ImGui::SameLine();
 
-    if (ImGui::Button("Noise!"))
+    if (ImGui::Button("Go") && m_algo != nullptr)
     {
-
+        m_algo->noise(m_noise_percent);
     }
 
     ImGui::End();

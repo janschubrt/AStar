@@ -60,7 +60,7 @@ void Window::context() const
 }
 
 
-bool Window::cursorHeld(int button) const
+bool Window::cursorHeld(const int button) const
 {
     return glfwGetMouseButton(m_handle, button) == GLFW_PRESS;
 }
@@ -71,7 +71,7 @@ glm::ivec2 Window::cursorPosition() const
     glm::dvec2 d_position;
     glfwGetCursorPos(m_handle, &d_position.x, &d_position.y);
 
-    glm::ivec2 i_position = d_position;
+    const glm::ivec2 i_position = d_position;
     return i_position;
 }
 
@@ -113,7 +113,7 @@ void Window::swap() const
 }
 
 
-void Window::title(std::string_view title)
+void Window::title(const std::string_view title) const
 {
     glfwSetWindowTitle(m_handle, title.data());
 }

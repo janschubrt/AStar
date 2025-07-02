@@ -30,7 +30,7 @@ public:
     [[nodiscard]] glm::vec2 scale() const;
     [[nodiscard]] glm::ivec2 size() const;
     void swap() const;
-    void title(std::string_view title);
+    void title(std::string_view title) const;
 
 
 private:

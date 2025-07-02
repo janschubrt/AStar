@@ -39,8 +39,12 @@ public:
 
     void noise(int percentage);
 
+    void pause();
     void reset();
+    void resume();
+    [[nodiscard]] bool running() const;
     void start();
+    [[nodiscard]] bool started() const;
     void step();
 
 
@@ -50,6 +54,7 @@ private:
 
     const int CAME_FROM_NONE = -1;
     bool m_start_algo = false;
+    bool m_run_algo = false;
 
     std::bitset<GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE> m_visited_tiles;
     std::bitset<GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE> m_blocked_tiles;
@@ -62,5 +67,5 @@ private:
     Window &m_window;
 
 
-    void createPath();
+    void createPath() const;
 };

@@ -8,7 +8,7 @@ AStar::AStar():
     m_renderer(m_window),
     m_algo(m_window, m_renderer.buffer(), {20, 20}, {80, 80})
 {
-
+    m_renderer.algo(m_algo);
 }
 
 
@@ -18,8 +18,8 @@ void AStar::run()
     {
         glfwPollEvents();
 
-        glm::ivec2 cursor_position = m_window.cursorPosition();
-        glm::ivec2 tile_position = {cursor_position.y / 10, cursor_position.x / 10};
+        const glm::ivec2 cursor_position = m_window.cursorPosition();
+        const glm::ivec2 tile_position = {cursor_position.y / 10, cursor_position.x / 10};
 
         if (m_window.cursorHeld(GLFW_MOUSE_BUTTON_LEFT))
         {
@@ -30,7 +30,11 @@ void AStar::run()
             m_algo.removeBlocked(tile_position);
         }
 
-        m_algo.step();
+        if (m_renderer.automatic())
+        {
+            m_algo.step();
+        }
+
         m_renderer.render();
     }
 }
@@ -42,7 +46,7 @@ void AStar::framebufferSizeCallback([[maybe_unused]] GLFWwindow *handle, int wid
 }
 
 
-void AStar::keyCallback(GLFWwindow *handle, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods)
+void AStar::keyCallback(GLFWwindow *handle, const int key, [[maybe_unused]] int scancode, const int action, [[maybe_unused]] int mods)
 {
     AStar *astar = static_cast<AStar *>(glfwGetWindowUserPointer(handle));
     assert(astar != nullptr);
