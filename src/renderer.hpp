@@ -23,6 +23,7 @@ public:
 
     void operator=(Renderer &) = delete;
 
+    [[nodiscard]] Buffer *buffer() const;
     void updateWindowScale(const glm::ivec2 &size) const;
 
     void render() const;

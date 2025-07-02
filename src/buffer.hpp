@@ -17,7 +17,8 @@ enum class TileType
     BLOCKED,
     START,
     GOAL,
-    VISITED
+    VISITED,
+    PATH
 };
 
 
@@ -37,7 +38,10 @@ public:
 
     void operator=(Buffer &) = delete;
 
+    void clear();
+
     void updateScale(const glm::vec2 &scale);
+    void updateTile(int index, TileType type);
     void updateTile(const glm::ivec2 &position, TileType type);
 
     void update() const;

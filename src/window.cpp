@@ -8,10 +8,6 @@
 #include <iostream>
 
 
-constexpr int WINDOW_HEIGHT = 1000;
-constexpr int WINDOW_WIDTH = 1000;
-
-
 void errorCallback([[maybe_unused]] int error_code, const char *description)
 {
     std::cerr << "GLFW threw an Error: " << description << "\n";
@@ -37,7 +33,7 @@ Window::Window(AStar *astar)
     glfwWindowHint(GLFW_SAMPLES, 4);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    m_handle = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "AStar", nullptr, nullptr);
+    m_handle = glfwCreateWindow(GLOBALS::WINDOW_WIDTH, GLOBALS::WINDOW_HEIGHT, "AStar", nullptr, nullptr);
     if (!m_handle)
     {
         std::cerr << "GLFW could create the application window\n";
@@ -46,6 +42,7 @@ Window::Window(AStar *astar)
 
     glfwSetWindowUserPointer(m_handle, astar);
     glfwSetFramebufferSizeCallback(m_handle, AStar::framebufferSizeCallback);
+    glfwSetKeyCallback(m_handle, AStar::keyCallback);
     glfwSetWindowContentScaleCallback(m_handle, AStar::windowContentScaleCallback);
     glfwSetWindowRefreshCallback(m_handle, AStar::windowRefreshCallback);
 }
@@ -60,6 +57,22 @@ Window::~Window()
 void Window::context() const
 {
     glfwMakeContextCurrent(m_handle);
+}
+
+
+bool Window::cursorHeld() const
+{
+    return glfwGetMouseButton(m_handle, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+}
+
+
+glm::ivec2 Window::cursorPosition() const
+{
+    glm::dvec2 d_position;
+    glfwGetCursorPos(m_handle, &d_position.x, &d_position.y);
+
+    glm::ivec2 i_position = d_position;
+    return i_position;
 }
 
 
@@ -97,4 +110,10 @@ glm::ivec2 Window::size() const
 void Window::swap() const
 {
     glfwSwapBuffers(m_handle);
+}
+
+
+void Window::title(std::string_view title)
+{
+    glfwSetWindowTitle(m_handle, title.data());
 }

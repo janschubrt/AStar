@@ -210,6 +210,12 @@ Renderer::~Renderer()
 }
 
 
+Buffer *Renderer::buffer() const
+{
+    return m_buffer.get();
+}
+
+
 void Renderer::updateWindowScale(const glm::ivec2 &size) const
 {
     m_buffer->updateScale(size);

@@ -1,5 +1,6 @@
 #include "buffer.hpp"
 
+#include "globals.hpp"
 #include "window.hpp"
 
 #include <glad/glad.h>
@@ -9,16 +10,17 @@
 #include <string>
 
 
-constexpr std::uint32_t COLOR_CLEAR     = 0xffffffff;
-constexpr std::uint32_t COLOR_BLOCKED   = 0x00000000;
-constexpr std::uint32_t COLOR_START     = 0xff00ff00;
-constexpr std::uint32_t COLOR_GOAL      = 0xff0000ff;
-constexpr std::uint32_t COLOR_VISITED   = 0xffff0000;
+namespace SHADER
+{
+    constexpr std::uint32_t COLOR_CLEAR     = 0xffffffff;
+    constexpr std::uint32_t COLOR_BLOCKED   = 0x00000000;
+    constexpr std::uint32_t COLOR_START     = 0xff00ff00;
+    constexpr std::uint32_t COLOR_GOAL      = 0xff0000ff;
+    constexpr std::uint32_t COLOR_VISITED   = 0xffff0000;
+    constexpr std::uint32_t COLOR_PATH      = 0xff00a5ff;
 
-constexpr int GRID_SIZE                 = 100;
 
-
-const std::string BUFFER_VERTEX = R"glsl(
+    const std::string BUFFER_VERTEX = R"glsl(
 #version 450 core
 
 
@@ -60,7 +62,7 @@ void main()
 )glsl";
 
 
-const std::string BUFFER_FRAGMENT = R"glsl(
+    const std::string BUFFER_FRAGMENT = R"glsl(
 #version 450 core
 
 
@@ -90,6 +92,9 @@ void main()
 )glsl";
 
 
+}
+
+
 std::uint32_t packPosition(const glm::ivec2 &position)
 {
     return (static_cast<uint32_t>(position.x) & 0xFFFFu) << 16 |
@@ -97,13 +102,48 @@ std::uint32_t packPosition(const glm::ivec2 &position)
 }
 
 
+std::uint32_t colorFromType(TileType type)
+{
+    std::uint32_t color = 0xffffffff;
+
+    switch (type)
+    {
+        case TileType::CLEAR:
+            color = SHADER::COLOR_CLEAR;
+            break;
+
+        case TileType::BLOCKED:
+            color = SHADER::COLOR_BLOCKED;
+            break;
+
+        case TileType::START:
+            color = SHADER::COLOR_START;
+            break;
+
+        case TileType::GOAL:
+            color = SHADER::COLOR_GOAL;
+            break;
+
+        case TileType::VISITED:
+            color = SHADER::COLOR_VISITED;
+            break;
+
+        case TileType::PATH:
+            color = SHADER::COLOR_PATH;
+            break;
+    }
+
+    return color;
+}
+
+
 Buffer::Buffer(const Window &window):
-    m_shader(BUFFER_VERTEX, BUFFER_FRAGMENT),
+    m_shader(SHADER::BUFFER_VERTEX, SHADER::BUFFER_FRAGMENT),
     m_projection_scale(window.scale()),
     m_projection_size(window.size())
 {
     updateProjection();
-    m_ssb_data.reserve(GRID_SIZE * GRID_SIZE);
+    m_ssb_data.reserve(GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE);
 
     glCreateVertexArrays(1, &m_vao);
     glCreateBuffers(1, &m_vbo);
@@ -123,13 +163,13 @@ Buffer::Buffer(const Window &window):
     glVertexArrayAttribBinding(m_vao, 0, 0);
     glEnableVertexArrayAttrib(m_vao, 0);
 
-    for (int i = 0; i < GRID_SIZE; i++)
+    for (int i = 0; i < GLOBALS::GRID_SIZE; i++)
     {
-        for (int j = 0; j < GRID_SIZE; j++)
+        for (int j = 0; j < GLOBALS::GRID_SIZE; j++)
         {
             SSBData data = {};
             data.position = packPosition({i * 10, j * 10});
-            data.color = COLOR_CLEAR;
+            data.color = SHADER::COLOR_CLEAR;
 
             m_ssb_data.push_back(data);
         }
@@ -137,11 +177,6 @@ Buffer::Buffer(const Window &window):
 
     glNamedBufferData(m_ssbo, m_ssb_data.size() * sizeof(SSBData), m_ssb_data.data(), GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_ssbo);
-
-    updateTile({10, 10}, TileType::START);
-    updateTile({20, 20}, TileType::GOAL);
-    updateTile({200, 200}, TileType::BLOCKED);
-    update();
 }
 
 
@@ -153,6 +188,15 @@ Buffer::~Buffer()
 }
 
 
+void Buffer::clear()
+{
+    for (int i = 0; i < m_ssb_data.size(); i++)
+    {
+        updateTile(i, TileType::CLEAR);
+    }
+}
+
+
 void Buffer::updateScale(const glm::vec2 &scale)
 {
     m_projection_scale = scale;
@@ -160,40 +204,26 @@ void Buffer::updateScale(const glm::vec2 &scale)
 }
 
 
-void Buffer::updateTile(const glm::ivec2 &position, const TileType type)
+void Buffer::updateTile(int index, TileType type)
 {
-    if (position.x >= GRID_SIZE || position.y >= GRID_SIZE)
+    if (index < 0 || index > m_ssb_data.size())
     {
         return;
     }
 
-    std::uint32_t color = 0xffffffff;
+    m_ssb_data[index].color = colorFromType(type);
+}
 
-    switch (type)
+
+void Buffer::updateTile(const glm::ivec2 &position, const TileType type)
+{
+    if (position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE)
     {
-    case TileType::CLEAR:
-        color = COLOR_CLEAR;
-        break;
-
-    case TileType::BLOCKED:
-        color = COLOR_BLOCKED;
-        break;
-
-    case TileType::START:
-        color = COLOR_START;
-        break;
-
-    case TileType::GOAL:
-        color = COLOR_GOAL;
-        break;
-
-    case TileType::VISITED:
-        color = COLOR_VISITED;
-        break;
+        return;
     }
 
-    const int index = position.x + position.y * GRID_SIZE;
-    m_ssb_data[index].color = color;
+    const int index = position.x + position.y * GLOBALS::GRID_SIZE;
+    m_ssb_data[index].color = colorFromType(type);
 }
 
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.20)
 project(AStar)
 
 
@@ -22,11 +22,15 @@ find_package(imgui CONFIG REQUIRED)
 
 
 add_executable(${PROJECT_NAME}
+        src/algo.cpp
         src/astar.cpp
         src/buffer.cpp
         src/renderer.cpp
         src/shader.cpp
         src/window.cpp
+        src/algo.cpp
+        src/algo.hpp
+        src/globals.hpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE
         src
