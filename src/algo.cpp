@@ -47,7 +47,7 @@ Algo::Algo(Window &window, Buffer *buffer, const glm::ivec2 &start, const glm::i
 
 void Algo::addBlocked(const glm::ivec2 &position)
 {
-    if (m_start_algo)
+    if (m_start_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE)
     {
         return;
     }
