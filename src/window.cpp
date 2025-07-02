@@ -60,9 +60,9 @@ void Window::context() const
 }
 
 
-bool Window::cursorHeld() const
+bool Window::cursorHeld(int button) const
 {
-    return glfwGetMouseButton(m_handle, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+    return glfwGetMouseButton(m_handle, button) == GLFW_PRESS;
 }
 
 

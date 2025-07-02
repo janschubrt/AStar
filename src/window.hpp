@@ -23,7 +23,7 @@ public:
     void operator=(Window &) = delete;
 
     void context() const;
-    [[nodiscard]] bool cursorHeld() const;
+    [[nodiscard]] bool cursorHeld(int button) const;
     [[nodiscard]] glm::ivec2 cursorPosition() const;
     void initImGUI() const;
     [[nodiscard]] bool running() const;

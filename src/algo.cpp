@@ -37,6 +37,7 @@ unsigned int Tile::cost() const
 Algo::Algo(Window &window, Buffer *buffer, const glm::ivec2 &start, const glm::ivec2 &goal):
     m_start(start),
     m_goal(goal),
+    m_came_from({CAME_FROM_NONE}),
     m_buffer(buffer),
     m_window(window)
 {
@@ -47,13 +48,31 @@ Algo::Algo(Window &window, Buffer *buffer, const glm::ivec2 &start, const glm::i
 
 void Algo::addBlocked(const glm::ivec2 &position)
 {
-    if (m_start_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE)
+    if (m_start_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE || position.x < 0 || position.y < 0)
     {
         return;
     }
 
-    m_blocked_tiles[index(position)] = true;
-    m_buffer->updateTile(position, TileType::BLOCKED);
+    if (position != m_start && position != m_goal)
+    {
+        m_blocked_tiles[index(position)] = true;
+        m_buffer->updateTile(position, TileType::BLOCKED);
+    }
+}
+
+
+void Algo::removeBlocked(const glm::ivec2 &position)
+{
+    if (m_start_algo || position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE || position.x < 0 || position.y < 0)
+    {
+        return;
+    }
+
+    if (position != m_start && position != m_goal)
+    {
+        m_blocked_tiles[index(position)] = true;
+        m_buffer->updateTile(position, TileType::CLEAR);
+    }
 }
 
 
