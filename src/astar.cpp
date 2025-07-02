@@ -72,7 +72,7 @@ void AStar::windowContentScaleCallback(GLFWwindow *handle, float xscale, float y
 
 void AStar::windowRefreshCallback(GLFWwindow *handle)
 {
-    const AStar *astar = static_cast<AStar *>(glfwGetWindowUserPointer(handle));
+    AStar *astar = static_cast<AStar *>(glfwGetWindowUserPointer(handle));
     assert(astar != nullptr);
 
     astar->m_renderer.render();

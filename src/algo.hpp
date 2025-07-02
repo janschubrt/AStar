@@ -36,6 +36,9 @@ public:
 
     void addBlocked(const glm::ivec2 &position);
     void removeBlocked(const glm::ivec2 &position);
+
+    void noise(int percentage);
+
     void reset();
     void start();
     void step();
@@ -46,6 +49,7 @@ private:
     glm::ivec2 m_goal;
 
     const int CAME_FROM_NONE = -1;
+    bool m_start_algo = false;
 
     std::bitset<GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE> m_visited_tiles;
     std::bitset<GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE> m_blocked_tiles;
@@ -56,8 +60,6 @@ private:
 
     Buffer *m_buffer;
     Window &m_window;
-
-    bool m_start_algo = false;
 
 
     void createPath();

@@ -26,11 +26,17 @@ public:
     [[nodiscard]] Buffer *buffer() const;
     void updateWindowScale(const glm::ivec2 &size) const;
 
-    void render() const;
+    void render();
 
 
 private:
     Window &m_window;
 
     std::unique_ptr<Buffer> m_buffer;
+
+    int m_noise_percent = 0;
+    bool m_automatic = true;
+
+
+    void renderUI();
 };

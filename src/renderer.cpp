@@ -2,6 +2,7 @@
 
 #include "window.hpp"
 
+#include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <glad/glad.h>
@@ -222,12 +223,58 @@ void Renderer::updateWindowScale(const glm::ivec2 &size) const
 }
 
 
-void Renderer::render() const
+void Renderer::render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
     m_buffer->update();
     m_buffer->render();
 
+    renderUI();
+
     m_window.swap();
+}
+
+
+void Renderer::renderUI()
+{
+    ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::Begin("A-Star");
+
+    if (ImGui::Button(m_automatic ? "Switch to: Manual Mode" : "Switch to: Automatic Mode"))
+    {
+        m_automatic = !m_automatic;
+    }
+
+    if (ImGui::Button("<"))
+    {
+
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button(">"))
+    {
+
+    }
+
+    ImGui::Text("Fill Plane with noise");
+    ImGui::InputInt("## Input", &m_noise_percent);
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Noise!"))
+    {
+
+    }
+
+    ImGui::End();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

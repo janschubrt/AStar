@@ -3,6 +3,7 @@
 #include "buffer.hpp"
 #include "window.hpp"
 
+#include <random>
 #include <string>
 
 
@@ -43,6 +44,8 @@ Algo::Algo(Window &window, Buffer *buffer, const glm::ivec2 &start, const glm::i
 {
     m_buffer->updateTile(start, TileType::START);
     m_buffer->updateTile(goal, TileType::GOAL);
+
+    noise(45);
 }
 
 
@@ -72,6 +75,40 @@ void Algo::removeBlocked(const glm::ivec2 &position)
     {
         m_blocked_tiles[index(position)] = true;
         m_buffer->updateTile(position, TileType::CLEAR);
+    }
+}
+
+
+void Algo::noise(int percentage)
+{
+    if (percentage > 100)
+    {
+        percentage = 100;
+    }
+    else if (percentage < 0)
+    {
+        percentage = 0;
+    }
+
+    const int blocked_count = (GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE * percentage) / 100;
+
+    std::random_device device;
+    std::mt19937 generator(device());
+    std::uniform_int_distribution<int> distribution_x(0, GLOBALS::GRID_SIZE - 1);
+    std::uniform_int_distribution<int> distribution_y(0, GLOBALS::GRID_SIZE - 1);
+
+    for (int i = 0; i < blocked_count; i++)
+    {
+        int x = distribution_x(generator);
+        int y = distribution_y(generator);
+
+        glm::ivec2 position(x, y);
+
+
+        if (position != m_start && position != m_goal)
+        {
+            addBlocked({x, y});
+        }
     }
 }
 
@@ -195,6 +232,6 @@ void Algo::createPath()
         count++;
     }
 
-    std::string title = "AStar - Path length" + std::to_string(count);
+    std::string title = "AStar - Path length " + std::to_string(count);
     m_window.title(title);
 }
