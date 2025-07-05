@@ -18,17 +18,7 @@ void AStar::run()
     {
         glfwPollEvents();
 
-        const glm::ivec2 cursor_position = m_window.cursorPosition();
-        const glm::ivec2 tile_position = {cursor_position.y / 10, cursor_position.x / 10};
-
-        if (m_window.cursorHeld(GLFW_MOUSE_BUTTON_LEFT))
-        {
-            m_algo.addBlocked(tile_position);
-        }
-        else if (m_window.cursorHeld(GLFW_MOUSE_BUTTON_RIGHT))
-        {
-            m_algo.removeBlocked(tile_position);
-        }
+        m_renderer.processClick(m_window.cursorPosition());
 
         if (m_renderer.automatic())
         {
@@ -55,7 +45,7 @@ void AStar::keyCallback(GLFWwindow *handle, const int key, [[maybe_unused]] int 
     {
         if (key == GLFW_KEY_ENTER)
         {
-            astar->m_algo.start();
+            astar->m_algo.run();
         }
         else if (key == GLFW_KEY_ESCAPE)
         {

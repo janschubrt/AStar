@@ -15,6 +15,14 @@ class Window;
 void updateViewport(const glm::ivec2 &size);
 
 
+enum class ClickMode
+{
+    DEFAULT,
+    START,
+    GOAL
+};
+
+
 class Renderer
 {
 public:
@@ -27,6 +35,8 @@ public:
     void algo(Algo &algo);
     [[nodiscard]] bool automatic() const;
     [[nodiscard]] Buffer *buffer() const;
+
+    void processClick(const glm::ivec2 &cursor_position);
     void updateWindowScale(const glm::ivec2 &size) const;
 
     void render();
@@ -39,6 +49,7 @@ private:
     std::unique_ptr<Buffer> m_buffer;
 
     int m_noise_percent = 0;
+    ClickMode m_mode = ClickMode::DEFAULT;
     bool m_automatic = true;
 
 

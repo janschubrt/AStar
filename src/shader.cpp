@@ -18,15 +18,17 @@ void shrinkLog(std::string &log)
 
 void checkShaderError(const unsigned int element, const bool is_shader)
 {
+    constexpr int LOG_SIZE = 1024;
+
     int result;
-    std::string log(1024, '\0');
+    std::string log(LOG_SIZE, '\0');
 
     if (is_shader)
     {
         glGetShaderiv(element, GL_COMPILE_STATUS, &result);
         if (!result)
         {
-            glGetShaderInfoLog(element, 1024, nullptr, &log.front());
+            glGetShaderInfoLog(element, LOG_SIZE, nullptr, &log.front());
             shrinkLog(log);
             std::cerr << "OpenGL Shader Compilation Error:\n" << log;
         }
@@ -36,7 +38,7 @@ void checkShaderError(const unsigned int element, const bool is_shader)
         glGetProgramiv(element, GL_LINK_STATUS, &result);
         if (!result)
         {
-            glGetProgramInfoLog(element, 1024, nullptr, &log.front());
+            glGetProgramInfoLog(element, LOG_SIZE, nullptr, &log.front());
             shrinkLog(log);
             std::cerr << "OpenGL Program Link Error:\n" << log;
         }

@@ -5,10 +5,10 @@
 
 #include <glm/glm.hpp>
 
+#include <array>
 #include <bitset>
 #include <queue>
 #include <unordered_map>
-#include <array>
 
 
 class Buffer;
@@ -37,13 +37,16 @@ public:
     void addBlocked(const glm::ivec2 &position);
     void removeBlocked(const glm::ivec2 &position);
 
+    void start(const glm::ivec2 &start);
+    void goal(const glm::ivec2 &goal);
+
     void noise(int percentage);
 
     void pause();
     void reset();
     void resume();
+    void run();
     [[nodiscard]] bool running() const;
-    void start();
     [[nodiscard]] bool started() const;
     void step();
 

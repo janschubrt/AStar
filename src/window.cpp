@@ -36,7 +36,7 @@ Window::Window(AStar *astar)
     m_handle = glfwCreateWindow(GLOBALS::WINDOW_WIDTH, GLOBALS::WINDOW_HEIGHT, "AStar", nullptr, nullptr);
     if (!m_handle)
     {
-        std::cerr << "GLFW could create the application window\n";
+        std::cerr << "GLFW could not create the application window\n";
         return;
     }
 

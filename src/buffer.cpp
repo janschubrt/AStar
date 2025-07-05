@@ -204,7 +204,7 @@ void Buffer::updateScale(const glm::vec2 &scale)
 }
 
 
-void Buffer::updateTile(int index, TileType type)
+void Buffer::updateTile(const int index, const TileType type)
 {
     if (index < 0 || index > m_ssb_data.size())
     {
@@ -217,7 +217,7 @@ void Buffer::updateTile(int index, TileType type)
 
 void Buffer::updateTile(const glm::ivec2 &position, const TileType type)
 {
-    if (position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE)
+    if (position.x >= GLOBALS::GRID_SIZE || position.y >= GLOBALS::GRID_SIZE || position.x < 0 || position.y < 0)
     {
         return;
     }

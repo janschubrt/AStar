@@ -25,6 +25,7 @@ bool Tile::operator>(const Tile &other) const
     {
         return this->m_cost_h > other.m_cost_h;
     }
+
     return this->cost() > other.cost();
 }
 
@@ -71,9 +72,35 @@ void Algo::removeBlocked(const glm::ivec2 &position)
 
     if (position != m_start && position != m_goal)
     {
-        m_blocked_tiles[index(position)] = true;
+        m_blocked_tiles[index(position)] = false;
         m_buffer->updateTile(position, TileType::CLEAR);
     }
+}
+
+
+void Algo::start(const glm::ivec2 &start)
+{
+    if (m_start_algo)
+    {
+        return;
+    }
+
+    m_buffer->updateTile(m_start, TileType::CLEAR);
+    m_start = start;
+    m_buffer->updateTile(m_start, TileType::START);
+}
+
+
+void Algo::goal(const glm::ivec2 &goal)
+{
+    if (m_start_algo)
+    {
+        return;
+    }
+
+    m_buffer->updateTile(m_goal, TileType::CLEAR);
+    m_goal = goal;
+    m_buffer->updateTile(m_goal, TileType::GOAL);
 }
 
 
@@ -90,12 +117,12 @@ void Algo::noise(int percentage)
         percentage = 0;
     }
 
-    const int blocked_count = (GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE * percentage) / 100;
+    const int blocked_count = GLOBALS::GRID_SIZE * GLOBALS::GRID_SIZE * percentage / 100;
 
     std::random_device device;
     std::mt19937 generator(device());
-    std::uniform_int_distribution<int> distribution_x(0, GLOBALS::GRID_SIZE - 1);
-    std::uniform_int_distribution<int> distribution_y(0, GLOBALS::GRID_SIZE - 1);
+    std::uniform_int_distribution distribution_x(0, GLOBALS::GRID_SIZE - 1);
+    std::uniform_int_distribution distribution_y(0, GLOBALS::GRID_SIZE - 1);
 
     for (int i = 0; i < blocked_count; i++)
     {
@@ -116,6 +143,8 @@ void Algo::noise(int percentage)
 void Algo::pause()
 {
     m_run_algo = false;
+
+    m_window.title("AStar - Paused");
 }
 
 
@@ -130,41 +159,44 @@ void Algo::reset()
 
     m_visited_tiles.reset();
     m_blocked_tiles.reset();
-    std::fill(m_came_from.begin(), m_came_from.end(), CAME_FROM_NONE);
+    std::ranges::fill(m_came_from, CAME_FROM_NONE);
     m_cost_g_map.clear();
     m_priority_queue = std::priority_queue<Tile, std::vector<Tile>, std::greater<>>();
 
-    const std::string title = "AStar";
-    m_window.title(title);
+    m_window.title("AStar");
 }
 
 
 void Algo::resume()
 {
     m_run_algo = true;
+
+    m_window.title("AStar - Searching...");
+}
+
+
+void Algo::run()
+{
+    m_start_algo = true;
+    m_run_algo = true;
+
+    const Tile start_tile = {
+        m_start,
+        0,
+        heuristic(m_start, m_goal)
+};
+
+    m_visited_tiles[index(m_start)] = true;
+    m_priority_queue.push(start_tile);
+    m_came_from[index(m_start)] = CAME_FROM_NONE;
+
+    m_window.title("AStar - Searching...");
 }
 
 
 bool Algo::running() const
 {
     return m_run_algo;
-}
-
-
-void Algo::start()
-{
-    m_start_algo = true;
-    m_run_algo = true;
-
-    const Tile start_tile = {
-            m_start,
-            0,
-            heuristic(m_start, m_goal)
-    };
-
-    m_visited_tiles[index(m_start)] = true;
-    m_priority_queue.push(start_tile);
-    m_came_from[index(m_start)] = CAME_FROM_NONE;
 }
 
 
@@ -176,20 +208,27 @@ bool Algo::started() const
 
 void Algo::step()
 {
-    if (!m_run_algo || m_visited_tiles[index(m_goal)] || m_priority_queue.empty())
+    if (!m_run_algo || m_visited_tiles[index(m_goal)])
     {
+        return;
+    }
+    if (m_priority_queue.empty())
+    {
+        m_window.title("AStar - No Path");
         return;
     }
 
     const Tile current = m_priority_queue.top();
     m_priority_queue.pop();
 
-    if (current.m_cost_g > m_cost_g_map[index(current.m_position)])
+    const unsigned int current_index = index(current.m_position);
+
+    if (current.m_cost_g > m_cost_g_map[current_index])
     {
         return;
     }
 
-    m_visited_tiles[index(current.m_position)] = true;
+    m_visited_tiles[current_index] = true;
 
     if (current.m_position == m_goal)
     {
@@ -197,7 +236,7 @@ void Algo::step()
         return;
     }
 
-    constexpr std::array<glm::ivec2, 4> directions = {
+    constexpr std::array directions = {
             glm::ivec2(0, 1),
             glm::ivec2(1, 0),
             glm::ivec2(0, -1),
@@ -224,14 +263,14 @@ void Algo::step()
         if (!m_cost_g_map.contains(neighbour_index) || new_g < m_cost_g_map[neighbour_index])
         {
             m_cost_g_map[neighbour_index] = new_g;
-            m_came_from[neighbour_index] = index(current.m_position);
+            m_came_from[neighbour_index] = static_cast<int>(current_index);
 
-            Tile neighbour_tile = {
+            Tile neighbor_tile = {
                     neighbor_position,
                     new_g,
                     heuristic(neighbor_position, m_goal)
             };
-            m_priority_queue.push(neighbour_tile);
+            m_priority_queue.push(neighbor_tile);
 
             if (neighbor_position != m_start && neighbor_position != m_goal)
             {
@@ -244,7 +283,7 @@ void Algo::step()
 
 void Algo::createPath() const
 {
-    int came_from_index = index(m_goal);
+    int came_from_index = static_cast<int>(index(m_goal));
     int count = 1;
 
     while (came_from_index != CAME_FROM_NONE)
@@ -258,6 +297,5 @@ void Algo::createPath() const
         count++;
     }
 
-    const std::string title = "AStar - Path length " + std::to_string(count);
-    m_window.title(title);
+    m_window.title("AStar - Path length " + std::to_string(count));
 }

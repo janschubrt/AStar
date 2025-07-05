@@ -231,6 +231,39 @@ Buffer *Renderer::buffer() const
 }
 
 
+void Renderer::processClick(const glm::ivec2 &cursor_position)
+{
+    if (m_algo == nullptr)
+    {
+        return;
+    }
+
+    const glm::ivec2 tile_position = {cursor_position.y / GLOBALS::TILE_SIZE, cursor_position.x / GLOBALS::TILE_SIZE};
+
+    if (m_mode == ClickMode::START && m_window.cursorHeld(GLFW_MOUSE_BUTTON_LEFT))
+    {
+        m_algo->start(tile_position);
+        m_mode = ClickMode::DEFAULT;
+    }
+    else if (m_mode == ClickMode::GOAL && m_window.cursorHeld(GLFW_MOUSE_BUTTON_LEFT))
+    {
+        m_algo->goal(tile_position);
+        m_mode = ClickMode::DEFAULT;
+    }
+    else
+    {
+        if (m_window.cursorHeld(GLFW_MOUSE_BUTTON_LEFT))
+        {
+            m_algo->addBlocked(tile_position);
+        }
+        else if (m_window.cursorHeld(GLFW_MOUSE_BUTTON_RIGHT))
+        {
+            m_algo->removeBlocked(tile_position);
+        }
+    }
+}
+
+
 void Renderer::updateWindowScale(const glm::ivec2 &size) const
 {
     m_buffer->updateScale(size);
@@ -252,55 +285,68 @@ void Renderer::render()
 
 void Renderer::renderUI()
 {
+    if (m_algo == nullptr)
+    {
+        return;
+    }
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     ImGui::Begin("A-Star");
 
+    ImGui::Text("Set Start/Goal with next Click:");
+    if (ImGui::Button("Start"))
+    {
+        m_mode = ClickMode::START;
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Goal"))
+    {
+        m_mode = ClickMode::GOAL;
+    }
+
+    ImGui::NewLine();
     ImGui::Text("Mode:");
     if (ImGui::Button(m_automatic ? "Switch to: Manual Mode" : "Switch to: Automatic Mode"))
     {
         m_automatic = !m_automatic;
     }
 
-    if (!m_automatic && m_algo != nullptr)
-    {
-        if (ImGui::Button("Step"))
-        {
-            m_algo->step();
-        }
 
+    if (!m_algo->started() && ImGui::Button("Run"))
+    {
+        m_algo->run();
+    }
+    else if (m_algo->started() && ImGui::Button("Reset"))
+    {
+        m_algo->reset();
+    }
+
+    if (m_algo->started() || !m_automatic)
+    {
         ImGui::SameLine();
     }
 
-    if (m_algo != nullptr)
+    if (m_automatic)
     {
-        if (!m_algo->started() && ImGui::Button("Start"))
+        if (m_algo->running() && ImGui::Button("Pause"))
         {
-            m_algo->start();
+            m_algo->pause();
         }
-        else if (m_algo->started() && ImGui::Button("Reset"))
+        else if (!m_algo->running() && m_algo->started() && ImGui::Button("Resume"))
         {
-            m_algo->reset();
+            m_algo->resume();
         }
-
-        if (m_algo->started())
-        {
-            ImGui::SameLine();
-        }
-
-        if (!m_automatic)
-        {
-            if (m_algo->running() && ImGui::Button("Pause"))
-            {
-                m_algo->pause();
-            }
-            else if (!m_algo->running() && m_algo->started() && ImGui::Button("Resume"))
-            {
-                m_algo->resume();
-            }
-        }
+    }
+    else
+    {
+         if (ImGui::Button("Step"))
+         {
+             m_algo->step();
+         }
     }
 
 
@@ -310,7 +356,7 @@ void Renderer::renderUI()
 
     ImGui::SameLine();
 
-    if (ImGui::Button("Go") && m_algo != nullptr)
+    if (ImGui::Button("Go"))
     {
         m_algo->noise(m_noise_percent);
     }
