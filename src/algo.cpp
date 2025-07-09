@@ -230,7 +230,7 @@ void Algo::step()
 
     m_visited_tiles[current_index] = true;
 
-    if (current.m_position == m_goal)
+    if (current.m_position == m_goal) [[unlikely]]
     {
         createPath();
         return;
@@ -248,7 +248,7 @@ void Algo::step()
         glm::ivec2 neighbor_position = current.m_position + offset;
 
         if (neighbor_position.x < 0 || neighbor_position.y < 0 ||
-            neighbor_position.x >= GLOBALS::GRID_SIZE || neighbor_position.y >= GLOBALS::GRID_SIZE)
+            neighbor_position.x >= GLOBALS::GRID_SIZE || neighbor_position.y >= GLOBALS::GRID_SIZE) [[unlikely]]
         {
             continue;
         }
