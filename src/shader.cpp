@@ -87,54 +87,6 @@ void Shader::use() const
 }
 
 
-void Shader::vec2(const std::string_view name, const glm::vec2 &value) const
-{
-    glUniform2fv(glGetUniformLocation(m_id, name.data()), 1, &value[0]);
-}
-
-
-void Shader::vec2(const std::string_view name, const float x, const float y) const
-{
-    glUniform2f(glGetUniformLocation(m_id, name.data()), x, y);
-}
-
-
-void Shader::vec3(const std::string_view name, const glm::vec3 &value) const
-{
-    glUniform3fv(glGetUniformLocation(m_id, name.data()), 1, &value[0]);
-}
-
-
-void Shader::vec3(const std::string_view name, const float x, const float y, const float z) const
-{
-    glUniform3f(glGetUniformLocation(m_id, name.data()), x, y, z);
-}
-
-
-void Shader::vec4(const std::string_view name, const glm::vec4 &value) const
-{
-    glUniform4fv(glGetUniformLocation(m_id, name.data()), 1, &value[0]);
-}
-
-
-void Shader::vec4(const std::string_view name, const float x, const float y, const float z, const float w) const
-{
-    glUniform4f(glGetUniformLocation(m_id, name.data()), x, y, z, w);
-}
-
-
-void Shader::mat2(const std::string_view name, const glm::mat2 &mat) const
-{
-    glUniformMatrix2fv(glGetUniformLocation(m_id, name.data()), 1, GL_FALSE, &mat[0][0]);
-}
-
-
-void Shader::mat3(const std::string_view name, const glm::mat3 &mat) const
-{
-    glUniformMatrix3fv(glGetUniformLocation(m_id, name.data()), 1, GL_FALSE, &mat[0][0]);
-}
-
-
 void Shader::mat4(const std::string_view name, const glm::mat4 &mat) const
 {
     glUniformMatrix4fv(glGetUniformLocation(m_id, name.data()), 1, GL_FALSE, &mat[0][0]);
